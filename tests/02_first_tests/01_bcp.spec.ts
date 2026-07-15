@@ -1,25 +1,37 @@
-import { chromium, Browser, BrowserContext, Page } from 'playwright';
+import { chromium, Browser, BrowserContext, Page } from "playwright";
 
-async function runTest() {
+async function run() {
 
-    // launch a new browser instance
-    let browser: Browser | null = await chromium.launch({ headless: false });
-    console.log('Browser launched');
+    // LEVEL 1: Launch browser — heaviest operation, do it once
+    let browser: Browser = await chromium.launch({ headless: false });
+    console.log("Browser Launched", browser);
 
-    // Create content for the test
-    let context1: BrowserContext | null = await browser.newContext();
-    console.log('Browser context created');
+    // LEVEL 2: Create context — fresh session, isolated cookies
+    let context1: BrowserContext = await browser.newContext();
+    console.log("Context created", context1);
+
+    let context2: BrowserContext = await browser.newContext();
+    console.log("Context created", context2);
 
 
-    // Create a new page in the context
-    let page: Page | null = await context1.newPage();
-    console.log('New page created');
+    // LEVEL 3: Open page — a tab inside the context
+    let page: Page = await context1.newPage();
+    console.log("Page opened");
 
-    await page.goto('https://example.com');
-    console.log('Navigated to example.com');
 
-    // Perform some actions on the page
-    const title = await page.title();
-    console.log(`Page title is: ${title}`);
+    await page.goto("https://app.vwo.com");
+    console.log("Title:", await page.title());
+
+    // Cleanup - reverse oder
+    await page.close();
+    await context1.close();
+    await context2.close();
+    await browser.close();
 
 }
+
+// Browser launched
+// Context created
+// Page opened
+// Title: Example Domain
+run();
